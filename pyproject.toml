@@ -17,3 +17,7 @@ build-backend = "hatchling.build"
 dev = [
     "ruff>=0.11.7",
 ]
+
+[tool.uv]
+venv = ".venv"
+python = "3.10.15"

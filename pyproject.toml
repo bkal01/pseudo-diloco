@@ -19,5 +19,3 @@ dev = [
 ]
 
 [tool.uv]
-venv = ".venv"
-python = "3.10.15"

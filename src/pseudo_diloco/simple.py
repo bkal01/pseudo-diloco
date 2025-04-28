@@ -24,7 +24,7 @@ def main():
 
     # training params
     batch_size = 512
-    per_device_batch_size = 32
+    per_device_batch_size = 16
     inner_lr = 4e-4
     weight_decay = 0.1
     b1 = 0.9
@@ -47,7 +47,7 @@ def main():
     )
     model = LlamaForCausalLM(
         config=config,
-    )
+    ).to("cuda")
     num_params = sum(p.numel() for p in model.parameters())
     print(f"Number of parameters: {num_params:,}")
 
@@ -58,8 +58,8 @@ def main():
     tokenizer.pad_token = "</s>"
 
     ds = load_dataset(
-        path="NeelNanda/c4-code-20k",
-        name="default",
+        path="allenai/c4",
+        data_files={"train": "en/c4-train.00000-of-01024.json.gz"},
     )
     print(f"Dataset size: {len(ds['train']):,} examples")
 
@@ -68,7 +68,7 @@ def main():
         return outputs
 
     tokenized_datasets = ds.map(
-        tokenize_function, batched=True, remove_columns=["text"]
+        tokenize_function, batched=True, remove_columns=["text", "timestamp", "url"]
     )
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
 
@@ -109,10 +109,12 @@ def main():
 
     wandb.init(project="pseudo_diloco")
 
-    # We do gradient accumulation with a micro batch size of 32, accumulating to a batch size of 512
     for micro_step, micro_batch in enumerate(train_dataloader):
         real_step = (micro_step + 1) // gradient_accumulation_steps
         step_within_grad_acc = (micro_step + 1) % gradient_accumulation_steps
+
+        for key in micro_batch.keys():
+            micro_batch[key] = micro_batch[key].to("cuda")
 
         out = model(**micro_batch)
         loss = out.loss / gradient_accumulation_steps

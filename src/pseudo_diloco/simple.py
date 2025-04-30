@@ -59,9 +59,9 @@ def main():
 
     ds = load_dataset(
         path="allenai/c4",
-        data_files={"train": "en/c4-train.00000-of-01024.json.gz"},
+        name="en",
+        streaming=True,
     )
-    print(f"Dataset size: {len(ds['train']):,} examples")
 
     def tokenize_function(data):
         outputs = tokenizer(data["text"], truncation=True, max_length=seq_len)

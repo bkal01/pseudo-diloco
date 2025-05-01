@@ -21,6 +21,7 @@ class PseudoDiloco:
         self.schedulers = []
         self.initial_base_params = {name: param.clone().detach() for name, param in self.base_model.named_parameters()}
 
+        self.active_replica = 0
 
         for _ in range(M):
             replica_copy = copy.deepcopy(self.base_model).cpu()
@@ -49,10 +50,35 @@ class PseudoDiloco:
         )
         self.sync_replicas()
 
+
+    def get_active_model(self):
+        return self.replicas[self.active_replica]
+
+    def get_active_inner_optimizer(self):
+        return self.inner_optimizers[self.active_replica]
+
+    def get_active_scheduler(self):
+        return self.schedulers[self.active_replica]
+
+    def next_replica(self):
+        pass
+
     @torch.no_grad()
     def sync_replicas(self):
         pass
 
     def outer_step(self):
-        pass
+        self.outer_optimizer.zero_grad()
+        
+        for name, param in self.base_model.named_parameters():
+            diff_sum = torch.zeros_like(param)
+            for replica in self.replicas:
+                replica_param = dict(replica.named_parameters())[name]
+                diff_sum += param - replica_param
+            
+            avg_diff = diff_sum / self.M
+            param.grad = avg_diff
+        
+        self.outer_optimizer.step()
+        self.outer_optimizer.zero_grad()
     

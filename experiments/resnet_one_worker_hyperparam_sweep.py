@@ -1,6 +1,6 @@
 import wandb
 from src.pseudo_diloco.config import load_config_from_yaml, Config
-from src.pseudo_diloco.models.resnet import get_resnet_18
+from src.pseudo_diloco.models.resnet import resnet20
 from src.pseudo_diloco.train_resnet import train
 
 def train_with_config():
@@ -11,10 +11,7 @@ def train_with_config():
     config.training_config.per_replica_batch_size = wandb.config.per_replica_batch_size
     config.outer_optimizer_config.lr = wandb.config.outer_lr
     
-    model = get_resnet_18(
-        num_classes=config.architecture_config.num_classes,
-        img_size=config.dataset_config.img_size,
-    )
+    model = resnet20()
     
     train(model, config)
 
@@ -27,10 +24,10 @@ if __name__ == "__main__":
         },
         "parameters": {
             "epochs": {
-                "values": [200, 300]
+                "values": [100]
             },
             "per_replica_batch_size": {
-                "values": [64, 128, 256]
+                "values": [64, 128, 256, 512, 1024]
             },
             "outer_lr": {
                 "values": [0.1, 0.4, 0.7]

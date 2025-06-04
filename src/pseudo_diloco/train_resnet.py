@@ -4,7 +4,7 @@ import torchvision.transforms as transforms
 import wandb
 
 from src.pseudo_diloco.config import Config, load_config_from_yaml
-from src.pseudo_diloco.models.resnet import get_resnet_18
+from src.pseudo_diloco.models.resnet import resnet20
 from src.pseudo_diloco.pseudo_diloco import PseudoDiloco
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -20,17 +20,31 @@ def train(
         config=config,
     )
 
+    train_transform = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+    ])
+
+    val_transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+    ])
+
     full_train_dataset = datasets.CIFAR10(
         root="data",
         train=True,
         download=True,
-        transform=transforms.ToTensor(),
     )
 
     train_dataset, val_dataset = torch.utils.data.random_split(
         full_train_dataset, 
         [config.dataset_config.train_size, config.dataset_config.val_size]
     )
+
+    train_dataset.dataset.transform = train_transform
+    val_dataset.dataset.transform = val_transform
 
     train_dataloader = torch.utils.data.DataLoader(
         train_dataset,
@@ -45,6 +59,7 @@ def train(
     )
 
     model = diloco.get_active_model().to(device)
+    model = torch.compile(model)
     inner_opt = diloco.get_active_inner_optimizer()
     scheduler = diloco.get_active_scheduler()
     loss_fn = torch.nn.CrossEntropyLoss()
@@ -139,8 +154,5 @@ def train(
 
 if __name__ == "__main__":
     config = load_config_from_yaml("configs/resnet-18-cifar-10.yml")
-    model = get_resnet_18(
-        num_classes=config.architecture_config.num_classes,
-        img_size=config.dataset_config.img_size,
-    )
+    model = resnet20()
     train(model, config)

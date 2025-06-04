@@ -10,6 +10,8 @@ def train_with_config():
     config.training_config.num_epochs = wandb.config.epochs
     config.training_config.per_replica_batch_size = wandb.config.per_replica_batch_size
     config.outer_optimizer_config.lr = wandb.config.outer_lr
+    config.inner_optimizer_config.weight_decay = wandb.config.inner_weight_decay
+    config.inner_optimizer_config.lr = wandb.config.inner_lr
     
     model = resnet20()
     
@@ -27,7 +29,13 @@ if __name__ == "__main__":
                 "values": [100]
             },
             "per_replica_batch_size": {
-                "values": [64, 128, 256, 512, 1024]
+                "values": [64, 128, 256, 512]
+            },
+            "inner_lr": {
+                "values": [0.001, 0.01, 0.1]
+            },
+            "inner_weight_decay": {
+                "values": [0.0, 0.001, 0.01]
             },
             "outer_lr": {
                 "values": [0.1, 0.4, 0.7]

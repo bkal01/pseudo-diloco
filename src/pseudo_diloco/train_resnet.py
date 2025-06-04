@@ -86,18 +86,18 @@ def train(
             inner_opt.zero_grad()
 
             if local_step_count % config.training_config.local_steps == 0:
-                local_step_count = 0
-                if active_replica == diloco.M - 1:
-                    diloco.outer_step()
-                    diloco.sync_replicas()
-                    active_replica = 0
-                else:
-                    diloco.replicas[active_replica].to("cpu")
-                    active_replica += 1
+                # local_step_count = 0
+                # if active_replica == diloco.M - 1:
+                #     diloco.outer_step()
+                #     diloco.sync_replicas()
+                #     active_replica = 0
+                # else:
+                #     diloco.replicas[active_replica].to("cpu")
+                #     active_replica += 1
 
-                model = diloco.replicas[active_replica].to(device)
-                inner_opt = diloco.inner_optimizers[active_replica]
-                scheduler = diloco.schedulers[active_replica]
+                # model = diloco.replicas[active_replica].to(device)
+                # inner_opt = diloco.inner_optimizers[active_replica]
+                # scheduler = diloco.schedulers[active_replica]
 
                 with torch.no_grad():
                     val_loss = 0.0

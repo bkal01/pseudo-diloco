@@ -4,7 +4,9 @@ import torch
 from transformers import get_cosine_schedule_with_warmup
 
 from src.pseudo_diloco.config import *
+from src.pseudo_diloco.all_reduce import all_reduce
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class PseudoDiloco:
     def __init__(
@@ -49,6 +51,7 @@ class PseudoDiloco:
             nesterov=self.config.outer_optimizer_config.nesterov,
         )
         self.sync_replicas()
+        self.replicas[self.active_replica].to(device)
 
 
     def get_active_model(self):
@@ -65,19 +68,16 @@ class PseudoDiloco:
 
     @torch.no_grad()
     def sync_replicas(self):
-        pass
+        for replica in self.replicas:
+            replica.load_state_dict(self.base_model.state_dict())
 
     def outer_step(self):
         self.outer_optimizer.zero_grad()
         
-        for name, param in self.base_model.named_parameters():
-            diff_sum = torch.zeros_like(param)
-            for replica in self.replicas:
-                replica_param = dict(replica.named_parameters())[name]
-                diff_sum += param - replica_param
-            
-            avg_diff = diff_sum / self.M
-            param.grad = avg_diff
+        all_reduce(
+            base_model=self.base_model,
+            replicas=self.replicas,
+        )
         
         self.outer_optimizer.step()
         self.outer_optimizer.zero_grad()

@@ -1,8 +1,6 @@
 import copy
 import torch
 
-from transformers import get_cosine_schedule_with_warmup
-
 from src.pseudo_diloco.config import *
 from src.pseudo_diloco.all_reduce import all_reduce
 
@@ -37,10 +35,9 @@ class PseudoDiloco:
             )
             self.inner_optimizers.append(inner_opt)
             self.schedulers.append(
-                get_cosine_schedule_with_warmup(
+                torch.optim.lr_scheduler.CosineAnnealingLR(
                     optimizer=inner_opt,
-                    num_warmup_steps=self.config.scheduler_config.num_warmup_steps,
-                    num_training_steps=self.config.scheduler_config.num_training_steps,
+                    T_max=self.config.scheduler_config.T_max,
                 )
             )
 

@@ -7,6 +7,7 @@ class DatasetConfig(BaseModel):
     val_size: int
     test_size: int | None = None
     img_size: int
+    num_classes: int
 
 class AdamWConfig(BaseModel):
     lr: float
@@ -22,6 +23,9 @@ class SGDConfig(BaseModel):
 class CosineSchedulerConfig(BaseModel):
     num_warmup_steps: int
     num_training_steps: int
+
+class CosineAnnealingSchedulerConfig(BaseModel):
+    T_max: int
 
 class ResnetConfig(BaseModel):
     num_classes: int
@@ -42,7 +46,7 @@ class Config(BaseModel):
     architecture_config: ResnetConfig | LlamaConfig
     inner_optimizer_config: AdamWConfig
     outer_optimizer_config: SGDConfig
-    scheduler_config: CosineSchedulerConfig
+    scheduler_config: CosineSchedulerConfig | CosineAnnealingSchedulerConfig
     training_config: TrainingConfig
     dataset_config: DatasetConfig
 

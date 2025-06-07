@@ -60,8 +60,8 @@ class PseudoDiloco:
     def get_active_scheduler(self):
         return self.schedulers[self.active_replica]
 
-    def next_replica(self):
-        pass
+    def iterate_replica(self):
+        self.active_replica = (self.active_replica + 1) % self.M
 
     @torch.no_grad()
     def sync_replicas(self):

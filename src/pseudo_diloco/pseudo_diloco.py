@@ -61,12 +61,17 @@ class PseudoDiloco:
         return self.schedulers[self.active_replica]
 
     def iterate_replica(self):
+        self.replicas[self.active_replica].to("cpu")
         self.active_replica = (self.active_replica + 1) % self.M
+        self.replicas[self.active_replica].to(device)
 
     @torch.no_grad()
     def sync_replicas(self):
         for replica in self.replicas:
-            replica.load_state_dict(self.base_model.state_dict())
+            for (_, p_base), (_, p_rep) in zip(
+                    self.base_model.named_parameters(),
+                    replica.named_parameters()):
+                p_rep.copy_(p_base) 
 
     def outer_step(self):
         self.outer_optimizer.zero_grad()
@@ -77,5 +82,4 @@ class PseudoDiloco:
         )
         
         self.outer_optimizer.step()
-        self.outer_optimizer.zero_grad()
     

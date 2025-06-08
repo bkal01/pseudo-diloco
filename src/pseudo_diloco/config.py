@@ -36,6 +36,7 @@ class LlamaConfig(BaseModel):
 
 class TrainingConfig(BaseModel):
     model_type: Literal["resnet", "llama"]
+    num_replicas: int | None = 1
     per_replica_batch_size: int
     local_steps: int
     num_epochs: int | None = None

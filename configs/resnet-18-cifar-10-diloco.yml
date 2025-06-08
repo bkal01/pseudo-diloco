@@ -10,6 +10,7 @@ dataset_config:
 
 training_config:
   model_type: resnet
+  num_replicas: 1
   per_replica_batch_size: 128
   local_steps: 100
   num_epochs: 200

@@ -1,5 +1,6 @@
 import torch
 
+@torch.no_grad()
 def all_reduce(
         base_model: torch.nn.Module,
         replicas: list[torch.nn.Module],

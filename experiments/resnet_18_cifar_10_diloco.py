@@ -3,6 +3,9 @@ from src.pseudo_diloco.config import load_config_from_yaml
 from src.pseudo_diloco.models.resnet import get_resnet_18
 from src.pseudo_diloco.datasets import get_cifar10_dataloaders
 from src.pseudo_diloco.train import train_classification
+from src.pseudo_diloco.utils import set_seed
+
+set_seed()
 
 def sweep_train():
     wandb.init()
